@@ -1,6 +1,6 @@
 import { Workspace } from "@rbxts/services";
 import { MainFolder, Vizcast, VizcastFolder, VizualizePart } from "./Types.d";
-import { FindFirstChild, FindFirstChildOrCreate } from "./Utility";
+import { ChildrenForEach, FindFirstChild, FindFirstChildOrCreate } from "./Utility";
 
 const folderTrash = FindFirstChildOrCreate(Workspace.Terrain, "Vizcast", "Folder");
 
@@ -17,6 +17,8 @@ export default class VizcastImp implements Vizcast {
 	CloneFolder;
 	VizualizeBlock;
 	VizualizeSphere;
+
+	disabled = false;
 	haveHighlight = false;
 
 	HitColor = Color3.fromRGB(0, 255, 0);
@@ -24,8 +26,9 @@ export default class VizcastImp implements Vizcast {
 
 	constructor(highlight = true, disabled = false) {
 		this.haveHighlight = highlight;
+		this.disabled = disabled;
 
-		if (disabled === false) {
+		if (this.disabled === false) {
 			{
 				this.MainFolder = new Instance("Folder") as MainFolder;
 				this.MainFolder.Name = "Main";
@@ -60,7 +63,7 @@ export default class VizcastImp implements Vizcast {
 			}
 		}
 
-		if (this.haveHighlight && this.VizualizeBlock && this.VizualizeSphere) {
+		if (this.haveHighlight && this.disabled) {
 			for (let i = 0; i < 2; i++) {
 				const hg = new Instance("Highlight");
 				hg.Adornee = this.VizualizeBlock;
@@ -104,6 +107,16 @@ export default class VizcastImp implements Vizcast {
 		}
 	}
 
+	private isEnabled(): this is this & {
+		MainFolder: MainFolder;
+		VizcastFolder: VizcastFolder;
+		CloneFolder: VizcastFolder;
+		VizualizeBlock: VizualizePart;
+		VizualizeSphere: VizualizePart;
+	} {
+		return !this.disabled;
+	}
+
 	Visible(b: boolean, vizualizePart?: VizualizePart) {
 		if (vizualizePart !== undefined) {
 			const highlight = FindFirstChild(vizualizePart, "Highlight") as Highlight | undefined;
@@ -111,15 +124,13 @@ export default class VizcastImp implements Vizcast {
 				highlight.Enabled = b;
 			}
 			vizualizePart.Transparency = b === true ? 0.5 : 1;
-		} else if (this.VizcastFolder !== undefined) {
-			this.VizcastFolder.GetChildren().forEach((vp) => {
-				const vizualizePart = vp as VizualizePart;
-
-				const highlight = FindFirstChild(vizualizePart, "Highlight") as Highlight | undefined;
+		} else if (this.isEnabled()) {
+			ChildrenForEach(this.VizcastFolder, (vp) => {
+				const highlight = FindFirstChild(vp, "Highlight") as Highlight | undefined;
 				if (highlight) {
 					highlight.Enabled = b;
 				}
-				vizualizePart.Transparency = b === true ? 0.5 : 1;
+				vp.Transparency = b === true ? 0.5 : 1;
 			});
 		}
 	}
@@ -136,7 +147,7 @@ export default class VizcastImp implements Vizcast {
 	): RaycastResult | undefined {
 		const ray = Workspace.Raycast(origin, direction, rayParam);
 
-		if (this.VizualizeBlock !== undefined) {
+		if (this.isEnabled()) {
 			this.colorSelect(this.VizualizeBlock, ray);
 
 			let rayDirection;
@@ -152,9 +163,7 @@ export default class VizcastImp implements Vizcast {
 			this.VizualizeBlock.CFrame = CFrame.lookAt(origin, rayDirection).mul(new CFrame(0, 0, -large / 2));
 
 			if (temporaryTime >= 0) {
-				task.delay(temporaryTime, () => {
-					this.Visible(false, this.VizualizeBlock);
-				});
+				task.delay(temporaryTime, () => this.Visible(false, this.VizualizeBlock));
 			}
 		}
 		return ray;
@@ -169,16 +178,14 @@ export default class VizcastImp implements Vizcast {
 	): RaycastResult | undefined {
 		const ray = Workspace.Blockcast(cframe, size, direction, rayParam);
 
-		if (this.VizualizeBlock !== undefined) {
+		if (this.isEnabled()) {
 			this.colorSelect(this.VizualizeBlock, ray);
 
 			this.VizualizeBlock.Size = size;
 			this.VizualizeBlock.CFrame = new CFrame(cframe.Position.add(direction)).mul(cframe.Rotation);
 
 			if (temporaryTime >= 0) {
-				task.delay(temporaryTime, () => {
-					this.Visible(false, this.VizualizeBlock);
-				});
+				task.delay(temporaryTime, () => this.Visible(false, this.VizualizeBlock));
 			}
 		}
 		return ray;
@@ -192,16 +199,14 @@ export default class VizcastImp implements Vizcast {
 	): RaycastResult | undefined {
 		const ray = Workspace.Spherecast(origin, radius, direction, rayParam);
 
-		if (this.VizualizeSphere !== undefined) {
+		if (this.isEnabled()) {
 			this.colorSelect(this.VizualizeSphere, ray);
 
 			this.VizualizeSphere.Size = Vector3.one.mul(radius * 2);
 			this.VizualizeSphere.Position = origin.add(direction);
 
 			if (temporaryTime >= 0) {
-				task.delay(temporaryTime, () => {
-					this.Visible(false, this.VizualizeSphere);
-				});
+				task.delay(temporaryTime, () => this.Visible(false, this.VizualizeSphere));
 			}
 		}
 		return ray;

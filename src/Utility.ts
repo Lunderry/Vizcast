@@ -18,3 +18,9 @@ export function FindFirstChild<T extends Instance, K extends keyof T>(obj: T, ch
 	}
 	return undefined;
 }
+
+type getChildren<T> = T extends { [key: number]: infer U } ? U : Instance;
+export function ChildrenForEach<T extends Instance>(obj: T, callback: (v: getChildren<T>, i?: number) => void) {
+	const children = obj.GetChildren() as Array<getChildren<T>>;
+	children.forEach(callback);
+}

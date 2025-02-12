@@ -12,13 +12,15 @@ interface VizcastFolder extends Folder {
 }
 
 export class Vizcast {
-	MainFolder: MainFolder | undefined;
-	VizcastFolder: VizcastFolder | undefined;
-	CloneFolder: VizcastFolder | undefined;
+	MainFolder?: MainFolder;
+	VizcastFolder?: VizcastFolder;
+	CloneFolder?: VizcastFolder;
 
-	VizualizeBlock: VizualizePart | undefined;
-	VizualizeSphere: VizualizePart | undefined;
+	VizualizeBlock?: VizualizePart;
+	VizualizeSphere?: VizualizePart;
+
 	haveHighlight: boolean;
+	disabled: boolean;
 
 	HitColor: Color3;
 	NoHitColor: Color3;
