@@ -1,5 +1,5 @@
 import { Workspace } from "@rbxts/services";
-import { MainFolder, Vizcast, VizcastFolder, VizualizePart } from "./Types";
+import { MainFolder, Vizcast, VizcastFolder, VizualizePart } from "./Types.d";
 import { FindFirstChild, FindFirstChildOrCreate } from "./Utility";
 
 const folderTrash = FindFirstChildOrCreate(Workspace.Terrain, "Vizcast", "Folder");
@@ -36,13 +36,13 @@ export default class VizcastImp implements Vizcast {
 				this.VizcastFolder.Parent = this.MainFolder;
 
 				this.CloneFolder = new Instance("Folder") as VizcastFolder;
-				this.CloneFolder.Name = "VizcastFolder";
+				this.CloneFolder.Name = "CloneFolder";
 				this.CloneFolder.Parent = this.MainFolder;
 			}
 
 			for (let i = 0; i < 2; i++) {
 				const part = new Instance("Part");
-				part.Size = Vector3.one.mul(100);
+				part.Position = Vector3.one.mul(100);
 				part.Anchored = true;
 				part.CanCollide = false;
 				part.CanQuery = false;
@@ -81,7 +81,7 @@ export default class VizcastImp implements Vizcast {
 		const vz = [];
 
 		for (let i = 0; i < size; i++) {
-			vz.push(new Vizcast(highlight, disabled));
+			vz.push(new VizcastImp(highlight, disabled));
 		}
 		return vz;
 	}
@@ -152,7 +152,9 @@ export default class VizcastImp implements Vizcast {
 			this.VizualizeBlock.CFrame = CFrame.lookAt(origin, rayDirection).mul(new CFrame(0, 0, -large / 2));
 
 			if (temporaryTime >= 0) {
-				task.delay(temporaryTime, this.Visible, false, this.VizualizeBlock);
+				task.delay(temporaryTime, () => {
+					this.Visible(false, this.VizualizeBlock);
+				});
 			}
 		}
 		return ray;
@@ -174,7 +176,9 @@ export default class VizcastImp implements Vizcast {
 			this.VizualizeBlock.CFrame = new CFrame(cframe.Position.add(direction)).mul(cframe.Rotation);
 
 			if (temporaryTime >= 0) {
-				task.delay(temporaryTime, this.Visible, false, this.VizualizeBlock);
+				task.delay(temporaryTime, () => {
+					this.Visible(false, this.VizualizeBlock);
+				});
 			}
 		}
 		return ray;
@@ -195,7 +199,9 @@ export default class VizcastImp implements Vizcast {
 			this.VizualizeSphere.Position = origin.add(direction);
 
 			if (temporaryTime >= 0) {
-				task.delay(temporaryTime, this.Visible, false, this.VizualizeSphere);
+				task.delay(temporaryTime, () => {
+					this.Visible(false, this.VizualizeSphere);
+				});
 			}
 		}
 		return ray;
